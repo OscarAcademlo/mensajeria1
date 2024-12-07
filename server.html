@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servidor de Mensajes</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0084ff;
+        }
+        .messages {
+            background-color: #f1f1f1;
+            padding: 15px;
+            margin-bottom: 15px;
+            height: 300px;
+            overflow-y: auto;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0077cc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Servidor de Mensajes</h1>
+        <div id="messages" class="messages"></div>
+        <input type="text" id="dni" placeholder="Ingrese DNI del cliente" />
+        <input type="text" id="mensaje" placeholder="Escriba el mensaje" />
+        <button onclick="enviarMensaje()">Enviar mensaje</button>
+    </div>
+
+    <script>
+        let socket;
+
+        // Conectar al servidor WebSocket
+        function conectar() {
+            socket = new WebSocket('ws://localhost:8080');
+            
+            socket.onopen = function() {
+                console.log('Conectado al servidor WebSocket');
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                const messagesDiv = document.getElementById('messages');
+                
+                // Mostrar mensaje recibido
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.textContent = `${data.dni}: ${data.mensaje}`;
+                messagesDiv.appendChild(messageDiv);
+
+                // Mantener el scroll en la parte inferior
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            };
+
+            socket.onerror = function(error) {
+                console.error('Error WebSocket:', error);
+                alert('No se pudo conectar al servidor WebSocket. Verifique que el servidor esté en ejecución.');
+            };
+
+            socket.onclose = function() {
+                console.log('Conexión cerrada');
+            };
+        }
+
+        // Enviar un mensaje
+        function enviarMensaje() {
+            const dni = document.getElementById('dni').value;
+            const mensaje = document.getElementById('mensaje').value;
+
+            if (dni && mensaje) {
+                // Enviar el mensaje al cliente con el dni correspondiente
+                socket.send(JSON.stringify({ dni, mensaje }));
+                document.getElementById('mensaje').value = '';  // Limpiar campo de mensaje
+            } else {
+                alert("Por favor ingrese el DNI y el mensaje.");
+            }
+        }
+
+        // Iniciar la conexión WebSocket
+        conectar();
+    </script>
+</body>
+</html>
