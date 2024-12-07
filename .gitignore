@@ -1,5 +1,5 @@
-node_modules
-package.json
-package-lock.json
-server.js
-server.html
+# Ignorar todos los archivos
+*
+
+# No ignorar el archivo cliente.html
+!cliente.html
